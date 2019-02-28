@@ -15,6 +15,7 @@ import {
   Footer,
   Input,
   SubmitButton,
+  EditStepWrapper
 } from './components';
 import Recognition from './recognition';
 import {
@@ -44,6 +45,7 @@ class ChatBot extends Component {
       speaking: false,
       recognitionEnable: props.recognitionEnable && Recognition.isSupported(),
       defaultUserSettings: {},
+      editingStep: '',
     };
 
     this.speak = speakFn(props.speechSynthesis);
@@ -232,35 +234,38 @@ class ChatBot extends Component {
     let stepIndex = null;
 
     renderedSteps.forEach( (rs, i) => {
-      if (id === rs.id)  {
-        stepIndex = i
+      if (id === rs.id) {
+        stepIndex = i;
       }
     })
 
     return stepIndex
   }
 
-  editRenderedStep = (step) => {
-    const { id } = step
+  triggerEditStep = ({id, user}) => {
+    const stepIndex = user? this.getStepIndexById(id) : null;    
 
-    const stepIndex = this.getStepIndexById(id);
-    // TODO 
-    // ====
-    // get this step in array
-    // mutate state with new step data
+    this.setState({
+      editingStep: stepIndex
+    });
+  }
+
+  closeEditStep = () => {
+    this.setState({
+      editingStep: null
+    });
+  }
+
+  updateRenderedStep = (index) => {
+    return (e) => {
     let renderedSteps = this.state.renderedSteps;
-    let mutatedStep = renderedSteps[stepIndex];
 
-    renderedSteps[stepIndex].message = 'edited';
-
-    
+    renderedSteps[index].message = e.currentTarget.value;
 
     this.setState({
       renderedSteps,
     });
-
-    console.log(mutatedStep , renderedSteps);
-
+    }
   }
 
   triggerNextStep = (data) => {
@@ -565,7 +570,7 @@ class ChatBot extends Component {
   }
 
   textStepClickHandle = (user, step) => {
-    this.editRenderedStep(step);
+    this.triggerEditStep(step);
   }
 
   renderStep = (step, index) => {
@@ -642,6 +647,7 @@ class ChatBot extends Component {
       renderedSteps,
       speaking,
       recognitionEnable,
+      editingStep
     } = this.state;
     const {
       className,
@@ -710,6 +716,19 @@ class ChatBot extends Component {
           height={height}
         >
           {!hideHeader && header}
+          {editingStep && (
+            <EditStepWrapper
+              className="rsc-editor"
+            >
+              <h2>Editing {renderedSteps[editingStep].id}</h2>
+              <input 
+                type="text" 
+                value={renderedSteps[editingStep].message} 
+                onChange={this.updateRenderedStep(editingStep)}
+              />
+              <button onClick={()=>this.closeEditStep()}>Submit</button>
+            </EditStepWrapper>
+          )}
           <Content
             className="rsc-content"
             innerRef={contentRef => (this.content = contentRef)}

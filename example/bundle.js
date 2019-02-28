@@ -338,24 +338,31 @@ function (_Component) {
       return stepIndex;
     });
 
-    _defineProperty(_assertThisInitialized(_assertThisInitialized(_this)), "editRenderedStep", function (step) {
-      var id = step.id;
-
-      var stepIndex = _this.getStepIndexById(id); // TODO 
-      // ====
-      // get this step in array
-      // mutate state with new step data
-
-
-      var renderedSteps = _this.state.renderedSteps;
-      var mutatedStep = renderedSteps[stepIndex];
-      renderedSteps[stepIndex].message = 'edited';
+    _defineProperty(_assertThisInitialized(_assertThisInitialized(_this)), "triggerEditStep", function (_ref) {
+      var id = _ref.id,
+          user = _ref.user;
+      var stepIndex = user ? _this.getStepIndexById(id) : null;
 
       _this.setState({
-        renderedSteps: renderedSteps
+        editingStep: stepIndex
       });
+    });
 
-      console.log(mutatedStep, renderedSteps);
+    _defineProperty(_assertThisInitialized(_assertThisInitialized(_this)), "closeEditStep", function () {
+      _this.setState({
+        editingStep: null
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_assertThisInitialized(_this)), "updateRenderedStep", function (index) {
+      return function (e) {
+        var renderedSteps = _this.state.renderedSteps;
+        renderedSteps[index].message = e.currentTarget.value;
+
+        _this.setState({
+          renderedSteps: renderedSteps
+        });
+      };
     });
 
     _defineProperty(_assertThisInitialized(_assertThisInitialized(_this)), "triggerNextStep", function (data) {
@@ -682,7 +689,7 @@ function (_Component) {
     });
 
     _defineProperty(_assertThisInitialized(_assertThisInitialized(_this)), "textStepClickHandle", function (user, step) {
-      _this.editRenderedStep(step);
+      _this.triggerEditStep(step);
     });
 
     _defineProperty(_assertThisInitialized(_assertThisInitialized(_this)), "renderStep", function (step, index) {
@@ -758,7 +765,8 @@ function (_Component) {
       inputInvalid: false,
       speaking: false,
       recognitionEnable: props.recognitionEnable && _recognition__WEBPACK_IMPORTED_MODULE_7__["default"].isSupported(),
-      defaultUserSettings: {}
+      defaultUserSettings: {},
+      editingStep: ''
     };
     _this.speak = Object(_speechSynthesis__WEBPACK_IMPORTED_MODULE_10__["speakFn"])(props.speechSynthesis);
     return _this;
@@ -899,7 +907,8 @@ function (_Component) {
           opened = _this$state6.opened,
           renderedSteps = _this$state6.renderedSteps,
           speaking = _this$state6.speaking,
-          recognitionEnable = _this$state6.recognitionEnable;
+          recognitionEnable = _this$state6.recognitionEnable,
+          editingStep = _this$state6.editingStep;
       var _this$props4 = this.props,
           className = _this$props4.className,
           contentStyle = _this$props4.contentStyle,
@@ -951,7 +960,17 @@ function (_Component) {
         style: style,
         width: width,
         height: height
-      }, !hideHeader && header, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components__WEBPACK_IMPORTED_MODULE_6__["Content"], {
+      }, !hideHeader && header, editingStep && react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components__WEBPACK_IMPORTED_MODULE_6__["EditStepWrapper"], {
+        className: "rsc-editor"
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h2", null, "Editing ", renderedSteps[editingStep].id), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+        type: "text",
+        value: renderedSteps[editingStep].message,
+        onChange: this.updateRenderedStep(editingStep)
+      }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+        onClick: function onClick() {
+          return _this3.closeEditStep();
+        }
+      }, "Submit")), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components__WEBPACK_IMPORTED_MODULE_6__["Content"], {
         className: "rsc-content",
         innerRef: function innerRef(contentRef) {
           return _this3.content = contentRef;
@@ -1307,6 +1326,34 @@ var Content = styled_components__WEBPACK_IMPORTED_MODULE_0__["default"].div(_tem
 
 /***/ }),
 
+/***/ "./lib/components/EditStepWrapper.jsx":
+/*!********************************************!*\
+  !*** ./lib/components/EditStepWrapper.jsx ***!
+  \********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var styled_components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! styled-components */ "./node_modules/styled-components/dist/styled-components.browser.esm.js");
+function _templateObject() {
+  var data = _taggedTemplateLiteral(["\n  height: 100%;\n  width:100%;\n  position: absolute;\n  top:0;\n  left:0;\n  background-color: rgba(255,255,255,0.8);\n  z-index: 1;\n"]);
+
+  _templateObject = function _templateObject() {
+    return data;
+  };
+
+  return data;
+}
+
+function _taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
+
+
+var EditStepWrapper = styled_components__WEBPACK_IMPORTED_MODULE_0__["default"].div(_templateObject());
+/* harmony default export */ __webpack_exports__["default"] = (EditStepWrapper);
+
+/***/ }),
+
 /***/ "./lib/components/FloatButton.jsx":
 /*!****************************************!*\
   !*** ./lib/components/FloatButton.jsx ***!
@@ -1617,7 +1664,7 @@ SubmitButton.defaultProps = {
 /*!*********************************!*\
   !*** ./lib/components/index.js ***!
   \*********************************/
-/*! exports provided: ChatBotContainer, Content, Header, HeaderTitle, HeaderIcon, FloatButton, FloatingIcon, Footer, Input, SubmitButton */
+/*! exports provided: ChatBotContainer, Content, Header, HeaderTitle, HeaderIcon, FloatButton, FloatingIcon, Footer, Input, SubmitButton, EditStepWrapper */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1651,6 +1698,10 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony import */ var _SubmitButton__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./SubmitButton */ "./lib/components/SubmitButton.jsx");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "SubmitButton", function() { return _SubmitButton__WEBPACK_IMPORTED_MODULE_9__["default"]; });
+
+/* harmony import */ var _EditStepWrapper__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./EditStepWrapper */ "./lib/components/EditStepWrapper.jsx");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "EditStepWrapper", function() { return _EditStepWrapper__WEBPACK_IMPORTED_MODULE_10__["default"]; });
+
 
 
 
@@ -3271,7 +3322,7 @@ function (_Component) {
       var showAvatar = user ? !hideUserAvatar : !hideBotAvatar;
 
       var clickHandle = function clickHandle(onClick) {
-        return function (x) {
+        return function (f) {
           onClick(user, step);
         };
       };

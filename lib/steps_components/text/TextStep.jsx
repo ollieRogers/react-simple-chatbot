@@ -76,7 +76,7 @@ class TextStep extends Component {
 
     const showAvatar = user ? !hideUserAvatar : !hideBotAvatar;
 
-    const clickHandle = (onClick) => x => {
+    const clickHandle = (onClick) => f => {
       onClick(user, step)
     }
 
