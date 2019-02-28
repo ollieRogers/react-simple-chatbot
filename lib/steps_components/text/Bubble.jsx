@@ -36,6 +36,10 @@ const Bubble = styled.div`
 
     return '0 0 10px 0';
   }};
+  cursor: ${props => {
+    const { user } = props;
+    return user ? 'pointer' : 'default' 
+  }}
   overflow: hidden;
   position: relative;
   padding: 12px;

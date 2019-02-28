@@ -24,6 +24,9 @@ const steps = [
     id: 'nameAnswer',
     user: true,
     trigger: 'end',
+    metadata: {
+      label: 'Edit your name'
+    }
   },
   {
     id: 'end',
@@ -39,6 +42,7 @@ const steps = [
 // Loop through partial app data and ask missing questions.
 // Use our form consts to define step names.
 // Use mobile number for all number fields.
+// Pull in our validation 
 
 
 // Inside ChatBot

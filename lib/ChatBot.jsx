@@ -257,6 +257,9 @@ class ChatBot extends Component {
   }
 
   updateRenderedStep = (index) => {
+
+    // TODO - Validate input
+    // submit on keypress
     return (e) => {
     let renderedSteps = this.state.renderedSteps;
 
@@ -720,11 +723,12 @@ class ChatBot extends Component {
             <EditStepWrapper
               className="rsc-editor"
             >
-              <h2>Editing {renderedSteps[editingStep].id}</h2>
+              <h2>{renderedSteps[editingStep].metadata.label}</h2>
               <input 
                 type="text" 
                 value={renderedSteps[editingStep].message} 
                 onChange={this.updateRenderedStep(editingStep)}
+                autoFocus
               />
               <button onClick={()=>this.closeEditStep()}>Submit</button>
             </EditStepWrapper>

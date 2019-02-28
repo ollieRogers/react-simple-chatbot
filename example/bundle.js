@@ -120,7 +120,10 @@ var steps = [{
 }, {
   id: 'nameAnswer',
   user: true,
-  trigger: 'end'
+  trigger: 'end',
+  metadata: {
+    label: 'Edit your name'
+  }
 }, {
   id: 'end',
   message: 'Thanks! Your data was submitted successfully!',
@@ -132,6 +135,7 @@ var steps = [{
 // Loop through partial app data and ask missing questions.
 // Use our form consts to define step names.
 // Use mobile number for all number fields.
+// Pull in our validation 
 // Inside ChatBot
 // ==============
 // Expose cache to top level 
@@ -355,6 +359,8 @@ function (_Component) {
     });
 
     _defineProperty(_assertThisInitialized(_assertThisInitialized(_this)), "updateRenderedStep", function (index) {
+      // TODO - Validate input
+      // submit on keypress
       return function (e) {
         var renderedSteps = _this.state.renderedSteps;
         renderedSteps[index].message = e.currentTarget.value;
@@ -962,10 +968,11 @@ function (_Component) {
         height: height
       }, !hideHeader && header, editingStep && react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components__WEBPACK_IMPORTED_MODULE_6__["EditStepWrapper"], {
         className: "rsc-editor"
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h2", null, "Editing ", renderedSteps[editingStep].id), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h2", null, renderedSteps[editingStep].metadata.label), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
         type: "text",
         value: renderedSteps[editingStep].message,
-        onChange: this.updateRenderedStep(editingStep)
+        onChange: this.updateRenderedStep(editingStep),
+        autoFocus: true
       }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
         onClick: function onClick() {
           return _this3.closeEditStep();
@@ -3051,7 +3058,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _common_animations__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../common/animations */ "./lib/common/animations.jsx");
 /* harmony import */ var _theme__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../theme */ "./lib/theme.js");
 function _templateObject() {
-  var data = _taggedTemplateLiteral(["\n  animation: ", " .3s ease forwards;\n  background: ", ";\n  border-radius: ", ";\n  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.15);\n  color: ", ";\n  display: inline-block;\n  font-size: 14px;\n  max-width: 50%;\n  margin: ", ";\n  overflow: hidden;\n  position: relative;\n  padding: 12px;\n  transform: scale(0);\n  transform-origin: ", ";\n"]);
+  var data = _taggedTemplateLiteral(["\n  animation: ", " .3s ease forwards;\n  background: ", ";\n  border-radius: ", ";\n  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.15);\n  color: ", ";\n  display: inline-block;\n  font-size: 14px;\n  max-width: 50%;\n  margin: ", ";\n  cursor: ", "\n  overflow: hidden;\n  position: relative;\n  padding: 12px;\n  transform: scale(0);\n  transform-origin: ", ";\n"]);
 
   _templateObject = function _templateObject() {
     return data;
@@ -3097,6 +3104,9 @@ var Bubble = styled_components__WEBPACK_IMPORTED_MODULE_0__["default"].div(_temp
   }
 
   return '0 0 10px 0';
+}, function (props) {
+  var user = props.user;
+  return user ? 'pointer' : 'default';
 }, function (props) {
   var isFirst = props.isFirst,
       user = props.user;
