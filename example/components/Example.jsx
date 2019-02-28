@@ -16,16 +16,47 @@ const otherFontTheme = {
 
 const steps = [
   {
-    id: '1',
-    message: 'Hello World',
+    id: 'nameQuestion',
+    message: 'What is your name?',
+    trigger: 'nameAnswer',
+  },
+  {
+    id: 'nameAnswer',
+    user: true,
+    trigger: 'end',
+  },
+  {
+    id: 'end',
+    message: 'Thanks! Your data was submitted successfully!',
     end: true,
   },
 ];
 
+// Outside ChatBot
+// ===============
+// Update our form data obj on stageSubmit
+// Loop through cache to prepop formData.
+// Loop through partial app data and ask missing questions.
+// Use our form consts to define step names.
+// Use mobile number for all number fields.
+
+
+// Inside ChatBot
+// ==============
+// Expose cache to top level 
+// Allow custom input 
+// Trigger updates on bubble click.
+// allow suffixes on questions
 
 const ThemedExample = () => (
   <ThemeProvider theme={otherFontTheme}>
-    <ChatBot steps={steps} />
+    <ChatBot 
+      onLoad={(data)=>{console.log('Loaded: ', data)}}
+      onChange={(data)=>{console.log('Changed: ', data)}}
+      placeholder="xxx"
+      steps={steps} 
+      cache={true}
+    />
   </ThemeProvider>
 );
 

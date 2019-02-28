@@ -53,6 +53,7 @@ const Bubble = styled.div`
 
 Bubble.defaultProps = {
   theme: defaultTheme,
+  onClick: ()=>{}
 };
 
 export default Bubble;

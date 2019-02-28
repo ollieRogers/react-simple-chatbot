@@ -60,6 +60,7 @@ class ChatBot extends Component {
       enableMobileAutoFocus,
       userAvatar,
       userDelay,
+      onLoad
     } = this.props;
     const chatSteps = {};
 
@@ -116,6 +117,8 @@ class ChatBot extends Component {
       },
     );
 
+    onLoad(renderedSteps)
+
     this.setState({
       currentStep,
       defaultUserSettings,
@@ -146,7 +149,10 @@ class ChatBot extends Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
+    const { onChange } = this.props
     const { opened } = nextProps;
+    
+    onChange(this.state);
 
     if (opened !== undefined && opened !== nextState.opened) {
       this.setState({ opened });
@@ -219,6 +225,42 @@ class ChatBot extends Component {
     }
 
     return steps;
+  }
+
+  getStepIndexById = (id) => {
+    const { renderedSteps } = this.state;
+    let stepIndex = null;
+
+    renderedSteps.forEach( (rs, i) => {
+      if (id === rs.id)  {
+        stepIndex = i
+      }
+    })
+
+    return stepIndex
+  }
+
+  editRenderedStep = (step) => {
+    const { id } = step
+
+    const stepIndex = this.getStepIndexById(id);
+    // TODO 
+    // ====
+    // get this step in array
+    // mutate state with new step data
+    let renderedSteps = this.state.renderedSteps;
+    let mutatedStep = renderedSteps[stepIndex];
+
+    renderedSteps[stepIndex].message = 'edited';
+
+    
+
+    this.setState({
+      renderedSteps,
+    });
+
+    console.log(mutatedStep , renderedSteps);
+
   }
 
   triggerNextStep = (data) => {
@@ -522,6 +564,10 @@ class ChatBot extends Component {
     }
   }
 
+  textStepClickHandle = (user, step) => {
+    this.editRenderedStep(step);
+  }
+
   renderStep = (step, index) => {
     const { renderedSteps } = this.state;
     const {
@@ -581,6 +627,7 @@ class ChatBot extends Component {
         speechSynthesis={speechSynthesis}
         isFirst={this.isFirstPosition(step)}
         isLast={this.isLastPosition(step)}
+        onClick={this.textStepClickHandle}
       />
     );
   }
@@ -715,6 +762,8 @@ class ChatBot extends Component {
 }
 
 ChatBot.propTypes = {
+  onChange: PropTypes.func,
+  onLoad: PropTypes.func,
   avatarStyle: PropTypes.objectOf(PropTypes.any),
   botAvatar: PropTypes.string,
   botDelay: PropTypes.number,
@@ -761,6 +810,8 @@ ChatBot.propTypes = {
 };
 
 ChatBot.defaultProps = {
+  onLoad:()=>{},
+  onChange:()=>{},
   avatarStyle: {},
   botDelay: 1000,
   bubbleOptionStyle: {},

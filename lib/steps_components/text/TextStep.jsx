@@ -69,11 +69,16 @@ class TextStep extends Component {
       bubbleStyle,
       hideBotAvatar,
       hideUserAvatar,
+      onClick
     } = this.props;
     const { loading } = this.state;
     const { avatar, user } = step;
 
     const showAvatar = user ? !hideUserAvatar : !hideBotAvatar;
+
+    const clickHandle = (onClick) => x => {
+      onClick(user, step)
+    }
 
     return (
       <TextStepContainer className={`rsc-ts ${user ? 'rsc-ts-user' : 'rsc-ts-bot'}`} user={user}>
@@ -98,6 +103,7 @@ class TextStep extends Component {
           showAvatar={showAvatar}
           isFirst={isFirst}
           isLast={isLast}
+          onClick={clickHandle(onClick)}
         >
           {loading ? <Loading /> : this.renderMessage()}
         </Bubble>
@@ -107,6 +113,7 @@ class TextStep extends Component {
 }
 
 TextStep.propTypes = {
+  onClick: PropTypes.func,
   avatarStyle: PropTypes.objectOf(PropTypes.any).isRequired,
   isFirst: PropTypes.bool.isRequired,
   isLast: PropTypes.bool.isRequired,
@@ -128,6 +135,7 @@ TextStep.propTypes = {
 };
 
 TextStep.defaultProps = {
+  onClick: ()=>{},
   previousStep: {},
   previousValue: '',
   speak: () => {},
