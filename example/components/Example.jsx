@@ -1,6 +1,7 @@
 import React from 'react';
 import { ThemeProvider } from 'styled-components';
 import ChatBot from '../../lib/index';
+import {steps} from './steps';
 
 const otherFontTheme = {
   background: '#f5f8fb',
@@ -14,26 +15,6 @@ const otherFontTheme = {
   userFontColor: '#4a4a4a',
 };
 
-const steps = [
-  {
-    id: 'nameQuestion',
-    message: 'What is your name?',
-    trigger: 'nameAnswer',
-  },
-  {
-    id: 'nameAnswer',
-    user: true,
-    trigger: 'end',
-    metadata: {
-      label: 'Edit your name'
-    }
-  },
-  {
-    id: 'end',
-    message: 'Thanks! Your data was submitted successfully!',
-    end: true,
-  },
-];
 
 // Outside ChatBot
 // ===============
@@ -58,8 +39,11 @@ const ThemedExample = () => (
       onLoad={(data)=>{console.log('Loaded: ', data)}}
       onChange={(data)=>{console.log('Changed: ', data)}}
       placeholder="xxx"
+      inputAttributes={{
+        type: 'text'
+      }}
       steps={steps} 
-      cache={true}
+      // cache={true}
     />
   </ThemeProvider>
 );

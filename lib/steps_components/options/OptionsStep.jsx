@@ -16,6 +16,7 @@ class OptionsStep extends Component {
     const { bubbleOptionStyle, step } = this.props;
     const { user } = step;
     const { value, label } = option;
+    console.log(step.options)
 
     return (
       <Option

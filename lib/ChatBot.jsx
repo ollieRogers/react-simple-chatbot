@@ -45,7 +45,8 @@ class ChatBot extends Component {
       speaking: false,
       recognitionEnable: props.recognitionEnable && Recognition.isSupported(),
       defaultUserSettings: {},
-      editingStep: '',
+      editingRenderedStepIndex: '',
+      editingStepId: '',
     };
 
     this.speak = speakFn(props.speechSynthesis);
@@ -246,17 +247,19 @@ class ChatBot extends Component {
     const stepIndex = user? this.getStepIndexById(id) : null;    
 
     this.setState({
-      editingStep: stepIndex
+      editingRenderedStepIndex: stepIndex,
+      editingStepId: id, 
     });
   }
 
   closeEditStep = () => {
     this.setState({
-      editingStep: null
+      editingRenderedStepIndex: null,
+      editingStepId: null,
     });
   }
 
-  updateRenderedStep = (index) => {
+  updateRenderedStep = (index, callback) => {
 
     // TODO - Validate input
     // submit on keypress
@@ -268,6 +271,7 @@ class ChatBot extends Component {
     this.setState({
       renderedSteps,
     });
+    callback();
     }
   }
 
@@ -650,7 +654,9 @@ class ChatBot extends Component {
       renderedSteps,
       speaking,
       recognitionEnable,
-      editingStep
+      editingRenderedStepIndex,
+      editingStepId,
+      steps
     } = this.state;
     const {
       className,
@@ -719,18 +725,32 @@ class ChatBot extends Component {
           height={height}
         >
           {!hideHeader && header}
-          {editingStep && (
+          {editingRenderedStepIndex && (
             <EditStepWrapper
               className="rsc-editor"
             >
-              <h2>{renderedSteps[editingStep].metadata.label}</h2>
-              <input 
-                type="text" 
-                value={renderedSteps[editingStep].message} 
-                onChange={this.updateRenderedStep(editingStep)}
-                autoFocus
-              />
-              <button onClick={()=>this.closeEditStep()}>Submit</button>
+              <h2>{steps[editingStepId].metadata.label}</h2>
+              {
+                steps[editingStepId].options && 
+                steps[editingStepId].options.map(option=>(
+                  // TODO -> display the label save the value
+                  <button onClick={this.updateRenderedStep(editingRenderedStepIndex, this.closeEditStep)} value={option.value}>{option.label}</button>
+                ))
+              }
+              {
+                // TODO tidy up switches & guard statements
+                !steps[editingStepId].options &&
+                <div>
+                  <input 
+                    type="text" 
+                    value={renderedSteps[editingRenderedStepIndex].message} 
+                    onChange={this.updateRenderedStep(editingRenderedStepIndex)}
+                    autoFocus
+                  />
+                  <button onClick={()=>this.closeEditStep()}>Submit</button>
+                </div>
+              }
+              
             </EditStepWrapper>
           )}
           <Content
@@ -746,21 +766,42 @@ class ChatBot extends Component {
           <Footer className="rsc-footer" style={footerStyle}>
             {
               !currentStep.hideInput && (
-                <Input
-                  type="textarea"
-                  style={inputStyle}
-                  innerRef={inputRef => (this.input = inputRef)}
-                  className="rsc-input"
-                  placeholder={inputInvalid ? '' : inputPlaceholder}
-                  onKeyPress={this.handleKeyPress}
-                  onChange={this.onValueChange}
-                  value={inputValue}
-                  floating={floating}
-                  invalid={inputInvalid}
-                  disabled={disabled}
-                  hasButton={!hideSubmitButton}
-                  {...inputAttributesOverride}
-                />
+                // TODO 
+                // + Replace this element based on what kind of input we want to use
+                // + Probably best to create a conditional component
+                // + Create wrapping element to position prefixes/suffixes
+                // + Tidy up conditionals
+                <div>
+                  {
+                    (currentStep.metadata && currentStep.metadata.prefix) &&
+                    <span className="rsc-input-prefix">
+                      {currentStep.metadata.prefix}
+                    </span>
+                  }
+                  <Input
+                    metadata={currentStep.metadata}
+                    type="textarea"
+                    style={inputStyle}
+                    innerRef={inputRef => (this.input = inputRef)}
+                    className="rsc-input"
+                    placeholder={inputInvalid ? '' : inputPlaceholder}
+                    onKeyPress={this.handleKeyPress}
+                    onChange={this.onValueChange}
+                    value={inputValue}
+                    floating={floating}
+                    invalid={inputInvalid}
+                    disabled={disabled}
+                    hasButton={!hideSubmitButton}
+                    {...inputAttributesOverride}
+                  />
+                  {
+                    (currentStep.metadata && currentStep.metadata.suffix) &&
+                    <span className="rsc-input-suffix">
+                      {currentStep.metadata.suffix}
+                    </span>
+                  }
+                </div>
+
               )
             }
             {

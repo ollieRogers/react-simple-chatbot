@@ -99,6 +99,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var styled_components__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! styled-components */ "./node_modules/styled-components/dist/styled-components.browser.esm.js");
 /* harmony import */ var _lib_index__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../lib/index */ "./lib/index.js");
+/* harmony import */ var _steps__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./steps */ "./example/components/steps.js");
+
 
 
 
@@ -112,23 +114,7 @@ var otherFontTheme = {
   botFontColor: '#fff',
   userBubbleColor: '#fff',
   userFontColor: '#4a4a4a'
-};
-var steps = [{
-  id: 'nameQuestion',
-  message: 'What is your name?',
-  trigger: 'nameAnswer'
-}, {
-  id: 'nameAnswer',
-  user: true,
-  trigger: 'end',
-  metadata: {
-    label: 'Edit your name'
-  }
-}, {
-  id: 'end',
-  message: 'Thanks! Your data was submitted successfully!',
-  end: true
-}]; // Outside ChatBot
+}; // Outside ChatBot
 // ===============
 // Update our form data obj on stageSubmit
 // Loop through cache to prepop formData.
@@ -154,12 +140,67 @@ var ThemedExample = function ThemedExample() {
       console.log('Changed: ', data);
     },
     placeholder: "xxx",
-    steps: steps,
-    cache: true
+    inputAttributes: {
+      type: 'text'
+    },
+    steps: _steps__WEBPACK_IMPORTED_MODULE_3__["steps"] // cache={true}
+
   }));
 };
 
 /* harmony default export */ __webpack_exports__["default"] = (ThemedExample);
+
+/***/ }),
+
+/***/ "./example/components/steps.js":
+/*!*************************************!*\
+  !*** ./example/components/steps.js ***!
+  \*************************************/
+/*! exports provided: steps */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "steps", function() { return steps; });
+var steps = [{
+  id: 'genderQuestion',
+  message: 'What is your title?',
+  trigger: 'gender'
+}, {
+  id: 'gender',
+  options: [{
+    value: 'Mr',
+    label: 'Mr',
+    trigger: 'ageQuestion'
+  }, {
+    value: 'Mrs',
+    label: 'Mrs',
+    trigger: 'ageQuestion'
+  }, {
+    value: 'Miss',
+    label: 'Miss',
+    trigger: 'ageQuestion'
+  }],
+  metadata: {
+    label: 'Edit your gender'
+  }
+}, {
+  id: 'ageQuestion',
+  message: 'How old are you?',
+  trigger: 'age'
+}, {
+  id: 'age',
+  user: true,
+  trigger: 'end-message',
+  metadata: {
+    label: 'Edit your name',
+    suffix: 'years'
+  }
+}, {
+  id: 'end-message',
+  message: 'Thanks! Your data was submitted successfully!',
+  end: true
+}];
 
 /***/ }),
 
@@ -348,17 +389,19 @@ function (_Component) {
       var stepIndex = user ? _this.getStepIndexById(id) : null;
 
       _this.setState({
-        editingStep: stepIndex
+        editingRenderedStepIndex: stepIndex,
+        editingStepId: id
       });
     });
 
     _defineProperty(_assertThisInitialized(_assertThisInitialized(_this)), "closeEditStep", function () {
       _this.setState({
-        editingStep: null
+        editingRenderedStepIndex: null,
+        editingStepId: null
       });
     });
 
-    _defineProperty(_assertThisInitialized(_assertThisInitialized(_this)), "updateRenderedStep", function (index) {
+    _defineProperty(_assertThisInitialized(_assertThisInitialized(_this)), "updateRenderedStep", function (index, callback) {
       // TODO - Validate input
       // submit on keypress
       return function (e) {
@@ -368,6 +411,8 @@ function (_Component) {
         _this.setState({
           renderedSteps: renderedSteps
         });
+
+        callback();
       };
     });
 
@@ -772,7 +817,8 @@ function (_Component) {
       speaking: false,
       recognitionEnable: props.recognitionEnable && _recognition__WEBPACK_IMPORTED_MODULE_7__["default"].isSupported(),
       defaultUserSettings: {},
-      editingStep: ''
+      editingRenderedStepIndex: '',
+      editingStepId: ''
     };
     _this.speak = Object(_speechSynthesis__WEBPACK_IMPORTED_MODULE_10__["speakFn"])(props.speechSynthesis);
     return _this;
@@ -914,7 +960,9 @@ function (_Component) {
           renderedSteps = _this$state6.renderedSteps,
           speaking = _this$state6.speaking,
           recognitionEnable = _this$state6.recognitionEnable,
-          editingStep = _this$state6.editingStep;
+          editingRenderedStepIndex = _this$state6.editingRenderedStepIndex,
+          editingStepId = _this$state6.editingStepId,
+          steps = _this$state6.steps;
       var _this$props4 = this.props,
           className = _this$props4.className,
           contentStyle = _this$props4.contentStyle,
@@ -966,18 +1014,26 @@ function (_Component) {
         style: style,
         width: width,
         height: height
-      }, !hideHeader && header, editingStep && react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components__WEBPACK_IMPORTED_MODULE_6__["EditStepWrapper"], {
+      }, !hideHeader && header, editingRenderedStepIndex && react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components__WEBPACK_IMPORTED_MODULE_6__["EditStepWrapper"], {
         className: "rsc-editor"
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h2", null, renderedSteps[editingStep].metadata.label), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
+      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h2", null, steps[editingStepId].metadata.label), steps[editingStepId].options && steps[editingStepId].options.map(function (option) {
+        return (// TODO -> display the label save the value
+          react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
+            onClick: _this3.updateRenderedStep(editingRenderedStepIndex, _this3.closeEditStep),
+            value: option.value
+          }, option.label)
+        );
+      }), // TODO tidy up switches & guard statements
+      !steps[editingStepId].options && react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
         type: "text",
-        value: renderedSteps[editingStep].message,
-        onChange: this.updateRenderedStep(editingStep),
+        value: renderedSteps[editingRenderedStepIndex].message,
+        onChange: this.updateRenderedStep(editingRenderedStepIndex),
         autoFocus: true
       }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
         onClick: function onClick() {
           return _this3.closeEditStep();
         }
-      }, "Submit")), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components__WEBPACK_IMPORTED_MODULE_6__["Content"], {
+      }, "Submit"))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components__WEBPACK_IMPORTED_MODULE_6__["Content"], {
         className: "rsc-content",
         innerRef: function innerRef(contentRef) {
           return _this3.content = contentRef;
@@ -989,7 +1045,15 @@ function (_Component) {
       }, renderedSteps.map(this.renderStep)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components__WEBPACK_IMPORTED_MODULE_6__["Footer"], {
         className: "rsc-footer",
         style: footerStyle
-      }, !currentStep.hideInput && react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components__WEBPACK_IMPORTED_MODULE_6__["Input"], _extends({
+      }, !currentStep.hideInput && // TODO 
+      // + Replace this element based on what kind of input we want to use
+      // + Probably best to create a conditional component
+      // + Create wrapping element to position prefixes/suffixes
+      // + Tidy up conditionals
+      react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, currentStep.metadata && currentStep.metadata.prefix && react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+        className: "rsc-input-prefix"
+      }, currentStep.metadata.prefix), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components__WEBPACK_IMPORTED_MODULE_6__["Input"], _extends({
+        metadata: currentStep.metadata,
         type: "textarea",
         style: inputStyle,
         innerRef: function innerRef(inputRef) {
@@ -1004,7 +1068,9 @@ function (_Component) {
         invalid: inputInvalid,
         disabled: disabled,
         hasButton: !hideSubmitButton
-      }, inputAttributesOverride)), !currentStep.hideInput && !hideSubmitButton && react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components__WEBPACK_IMPORTED_MODULE_6__["SubmitButton"], {
+      }, inputAttributesOverride)), currentStep.metadata && currentStep.metadata.suffix && react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+        className: "rsc-input-suffix"
+      }, currentStep.metadata.suffix)), !currentStep.hideInput && !hideSubmitButton && react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components__WEBPACK_IMPORTED_MODULE_6__["SubmitButton"], {
         className: "rsc-submit-button",
         style: submitButtonStyle,
         onClick: this.handleSubmitButton,
@@ -2974,6 +3040,7 @@ function (_Component) {
       var user = step.user;
       var value = option.value,
           label = option.label;
+      console.log(step.options);
       return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Option__WEBPACK_IMPORTED_MODULE_2__["default"], {
         key: value,
         className: "rsc-os-option"
@@ -3441,7 +3508,6 @@ var getData = function getData(params, callback) {
       cache = params.cache,
       firstStep = params.firstStep,
       steps = params.steps;
-  console.log(localStorage.getItem(cacheName));
   var currentStep = firstStep;
   var renderedSteps = [steps[currentStep.id]];
   var previousSteps = [steps[currentStep.id]];

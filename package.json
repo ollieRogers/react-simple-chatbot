@@ -12,7 +12,9 @@
     "test": "./node_modules/.bin/mocha tests/helpers/setup.js tests/**/*.spec.js --require @babel/register",
     "test:watch": "npm test -- --watch",
     "test:coverage": "nyc npm test",
-    "build": "./node_modules/.bin/webpack --config webpack.config.prod.js -p"
+    "build": "./node_modules/.bin/webpack --config webpack.config.prod.js -p",
+    "dev": "./node_modules/.bin/webpack --config webpack.config.js --watch",
+    "serve": "http-server example/"
   },
   "files": [
     "dist"
