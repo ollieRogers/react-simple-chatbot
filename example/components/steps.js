@@ -1,37 +1,37 @@
-  export const steps = [
+export const steps = [
     {
-      id: 'genderQuestion',
-      message: 'What is your title?',
-      trigger: 'gender',
+      id: 'postcodeQuestion',
+      message: 'What\'s your postcode?',
+      trigger: 'postcode',
     },
     {
-      id: 'gender',
-      options: [
-        { value: 'Mr', label: 'Mr', trigger: 'ageQuestion' },
-        { value: 'Mrs', label: 'Mrs', trigger: 'ageQuestion' },
-        { value: 'Miss', label: 'Miss', trigger: 'ageQuestion' },
-      ],
-      metadata: {
-        label: 'Edit your gender',
-      }
-    },
-    {
-      id: 'ageQuestion',
-      message: 'How old are you?',
-      trigger: 'age',
-    },
-    {
-      id: 'age',
+      id: 'postcode',
       user: true,
-      trigger: 'end-message',
+      trigger: 'addressLookup',
+      placeholder: 'e.g BH1 3NE',
       metadata: {
-        label: 'Edit your name',
-        suffix: 'years',
+        label: 'Edit your postcode',
       }
-    },  
+    },
     {
-      id: 'end-message',
-      message: 'Thanks! Your data was submitted successfully!',
+      id: 'addressLookup',
+      user: false,
+      delay:300,
+      trigger: 'address',
+      asyncAddressLookup: true,
+      placeholder: 'e.g BH1 3NE',
+      metadata: {
+        label: 'Edit your postcode',
+      },
+    },
+    {
+      id: 'address',
+      message: ({ previousValue, steps }) => `Thanks, your address is: ${previousValue}`,
+      trigger: 'end',
+    },
+    {
+      id: 'end',
+      message: 'Thanks! Your appliation was submitted!',
       end: true,
     },
   ]

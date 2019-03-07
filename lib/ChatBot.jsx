@@ -26,6 +26,7 @@ import {
 } from './icons';
 import { isMobile } from './utils';
 import { speakFn } from './speechSynthesis';
+import AddressFinder from './steps_components/address/AddressFinder';
 
 class ChatBot extends Component {
   /* istanbul ignore next */
@@ -258,20 +259,37 @@ class ChatBot extends Component {
       editingStepId: null,
     });
   }
+  
+  updateRenderedStep  = (index, step) => {
+    // Takes a full step and replaces the rendered step with it. 
+    let {renderedSteps} = this.state;
 
-  updateRenderedStep = (index, callback) => {
-
-    // TODO - Validate input
-    // submit on keypress
-    return (e) => {
-    let renderedSteps = this.state.renderedSteps;
-
-    renderedSteps[index].message = e.currentTarget.value;
+    renderedSteps[index] = step;
 
     this.setState({
       renderedSteps,
     });
-    callback();
+  }
+
+  updateRenderedStepWithEvent = (index, callback) => {
+    // TODO - Validate text input here.
+    return (e) => {
+      let renderedSteps = this.state.renderedSteps;
+      
+      // TODO - we need a more elegant way of handling updates to renderd steps.  
+      renderedSteps[index].message = e.currentTarget.name ? e.currentTarget.name : e.currentTarget.value;
+      renderedSteps[index].value = e.currentTarget.value;
+      if(e.currentTarget.name){
+        renderedSteps[index].label = e.currentTarget.name
+      }
+       
+      this.setState({
+        renderedSteps,
+      });
+
+      if (typeof callback === "function") {  
+        callback();
+      }
     }
   }
 
@@ -579,9 +597,18 @@ class ChatBot extends Component {
   textStepClickHandle = (user, step) => {
     this.triggerEditStep(step);
   }
+  
+  updateAddressStep = (selectedAddress, step) => {
+    const addressStep = this.getStepIndexById(step.id);
+    
+    step.value = selectedAddress.addressFull;
+    this.triggerNextStep(addressStep, step);
+  }
 
   renderStep = (step, index) => {
-    const { renderedSteps } = this.state;
+    const { 
+      renderedSteps
+    } = this.state;
     const {
       avatarStyle,
       bubbleStyle,
@@ -591,9 +618,25 @@ class ChatBot extends Component {
       hideUserAvatar,
       speechSynthesis,
     } = this.props;
-    const { options, component, asMessage } = step;
+    const { options, component, asMessage, asyncAddressLookup  } = step;
     const steps = this.generateRenderedStepsById();
     const previousStep = index > 0 ? renderedSteps[index - 1] : {};
+
+    if (asyncAddressLookup) {
+      return (
+        <AddressFinder 
+        key={index}
+        renderedSteps={renderedSteps}
+        step={step}
+        steps={steps}
+        postcode={'BH13NE'}
+        updateAddressStep={this.updateAddressStep}
+        previousStep={previousStep}
+        previousValue={previousStep.value}
+        triggerNextStep={this.triggerNextStep}
+        />
+      )
+    }
 
     if (component && !asMessage) {
       return (
@@ -731,10 +774,16 @@ class ChatBot extends Component {
             >
               <h2>{steps[editingStepId].metadata.label}</h2>
               {
+                // TODO - Tidy up & make readable
                 steps[editingStepId].options && 
                 steps[editingStepId].options.map(option=>(
-                  // TODO -> display the label save the value
-                  <button onClick={this.updateRenderedStep(editingRenderedStepIndex, this.closeEditStep)} value={option.value}>{option.label}</button>
+                  <button 
+                    key={option.label} 
+                    onClick={this.updateRenderedStepWithEvent(editingRenderedStepIndex, this.closeEditStep)} 
+                    value={option.value} 
+                    name={option.label}>
+                    {option.label}
+                  </button>
                 ))
               }
               {
@@ -744,7 +793,7 @@ class ChatBot extends Component {
                   <input 
                     type="text" 
                     value={renderedSteps[editingRenderedStepIndex].message} 
-                    onChange={this.updateRenderedStep(editingRenderedStepIndex)}
+                    onChange={this.updateRenderedStepWithEvent(editingRenderedStepIndex)}
                     autoFocus
                   />
                   <button onClick={()=>this.closeEditStep()}>Submit</button>
@@ -784,7 +833,7 @@ class ChatBot extends Component {
                     style={inputStyle}
                     innerRef={inputRef => (this.input = inputRef)}
                     className="rsc-input"
-                    placeholder={inputInvalid ? '' : inputPlaceholder}
+                    placeholder={currentStep.placeholder}
                     onKeyPress={this.handleKeyPress}
                     onChange={this.onValueChange}
                     value={inputValue}

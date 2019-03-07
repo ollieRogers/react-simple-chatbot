@@ -35,7 +35,9 @@ const otherFontTheme = {
 
 const ThemedExample = () => (
   <ThemeProvider theme={otherFontTheme}>
-    <ChatBot 
+    <ChatBot
+      botDelay={300}
+      userDelay={300}
       onLoad={(data)=>{console.log('Loaded: ', data)}}
       onChange={(data)=>{console.log('Changed: ', data)}}
       placeholder="xxx"
