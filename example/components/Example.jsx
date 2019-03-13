@@ -44,7 +44,7 @@ const ThemedExample = () => (
       inputAttributes={{
         type: 'text'
       }}
-      steps={steps} 
+      steps={steps}
       // cache={true}
     />
   </ThemeProvider>

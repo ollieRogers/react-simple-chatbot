@@ -194,6 +194,25 @@ class ChatBot extends Component {
   onValueChange = (event) => {
     this.setState({ inputValue: event.target.value });
   }
+  
+  onFieldValueChange = (event, field) => {
+    
+    // update nested fields (HACK for DOB field).
+    // This is a bit of a disgusting hack for updating a 
+    // nested statepart consider a refactor.
+    this.setState({
+      currentStep: {
+        ...this.state.currentStep,
+        fields: {
+          ...this.state.currentStep.fields,
+          [field]: {
+            ...this.state.currentStep.fields[field], 
+            value: event.currentTarget.value
+          }
+        }
+      }
+    });
+  }
 
   getTriggeredStep = (trigger, value) => {
     const steps = this.generateRenderedStepsById();
@@ -509,20 +528,36 @@ class ChatBot extends Component {
   submitUserMessage = () => {
     const {
       defaultUserSettings,
-      inputValue,
       previousSteps,
       renderedSteps,
     } = this.state;
-    let { currentStep } = this.state;
-
+    let { currentStep, inputValue } = this.state;
     const isInvalid = currentStep.validator && this.checkInvalidInput();
+    
+    let message = inputValue;
 
+    // TODO - if has fields read fields and add DOB here.
+    // Update value with concatenated DOB 
+    // set field values so we can access them later.
+    // Its a bit of a hack but DOB is the only place where we need multi text input at the moment.
+    
+    console.log('submitUserMessage', currentStep.fields)
+    if (currentStep.fields) {
+      // replace template string with mapped values
+      message = currentStep.messageTemplate;
+      inputValue = currentStep.fields;
+      Object.keys(currentStep.fields).map(key=>{
+        const reg = new RegExp(key, "");
+        message = message.replace(reg, currentStep.fields[key].value);
+      })
+    }
+    
     if (!isInvalid) {
       const step = {
-        message: inputValue,
+        message,
         value: inputValue,
       };
-
+      
       currentStep = Object.assign({}, defaultUserSettings, currentStep, step);
 
       renderedSteps.push(currentStep);
@@ -607,7 +642,7 @@ class ChatBot extends Component {
 
   renderStep = (step, index) => {
     const { 
-      renderedSteps
+      renderedSteps,
     } = this.state;
     const {
       avatarStyle,
@@ -618,10 +653,10 @@ class ChatBot extends Component {
       hideUserAvatar,
       speechSynthesis,
     } = this.props;
-    const { options, component, asMessage, asyncAddressLookup  } = step;
+    const { options, component, asMessage, asyncAddressLookup } = step;
     const steps = this.generateRenderedStepsById();
     const previousStep = index > 0 ? renderedSteps[index - 1] : {};
-
+    
     if (asyncAddressLookup) {
       return (
         <AddressFinder 
@@ -637,6 +672,7 @@ class ChatBot extends Component {
         />
       )
     }
+
 
     if (component && !asMessage) {
       return (
@@ -721,7 +757,6 @@ class ChatBot extends Component {
       width,
       height,
     } = this.props;
-
     const header = headerComponent || (
       <Header className="rsc-header">
         <HeaderTitle className="rsc-header-title">{headerTitle}</HeaderTitle>
@@ -741,7 +776,6 @@ class ChatBot extends Component {
       : currentStep.placeholder || placeholder;
 
     const inputAttributesOverride = currentStep.inputAttributes || inputAttributes;
-
     return (
       <div className={`rsc ${className}`}>
         {floating && (
@@ -813,14 +847,39 @@ class ChatBot extends Component {
             {renderedSteps.map(this.renderStep)}
           </Content>
           <Footer className="rsc-footer" style={footerStyle}>
+            {!currentStep.hideInput && currentStep.fields && 
+            Object.keys(currentStep.fields).map(key=>{
+                console.log('map',currentStep.fields)
+                return(
+                  <Input
+                    metadata={currentStep.metadata}
+                    type="textarea"
+                    style={inputStyle}
+                    innerRef={inputRef => (this.input = inputRef)} 
+                    className="rsc-input rsc-input-multi"
+                    maxLength={currentStep.fields[key].len}
+                    placeholder={currentStep.fields[key].placeholder}
+                    onKeyPress={this.handleKeyPress}
+                    onChange={event=>this.onFieldValueChange(event, key)} // update fields
+                    value={currentStep.fields[key].value}
+                    floating={floating}
+                    invalid={inputInvalid}
+                    disabled={disabled}
+                    hasButton={!hideSubmitButton}
+                    {...inputAttributesOverride}
+                  />
+                )
+              })
+            }
             {
-              !currentStep.hideInput && (
+              !currentStep.hideInput && !currentStep.fields && (
                 // TODO 
                 // + Replace this element based on what kind of input we want to use
                 // + Probably best to create a conditional component
                 // + Create wrapping element to position prefixes/suffixes
                 // + Tidy up conditionals
                 <div>
+                  
                   {
                     (currentStep.metadata && currentStep.metadata.prefix) &&
                     <span className="rsc-input-prefix">
@@ -850,7 +909,6 @@ class ChatBot extends Component {
                     </span>
                   }
                 </div>
-
               )
             }
             {

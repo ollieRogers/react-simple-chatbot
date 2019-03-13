@@ -1,5 +1,39 @@
 export const steps = [
     {
+      id: 'dobQuestion',
+      message: 'What\'s your Date of birth?',
+      trigger: 'dob',
+    },
+    {
+      id: 'dob',
+      user: true,
+      trigger: 'postcodeQuestion',
+      metadata: {
+        label: 'edit DOB',
+      },
+      fields: {dd:{
+          placeholder:'dd',
+          type: 'number',
+          len: 2,
+          value: '',
+        },
+        mm: {
+          placeholder:'mm',
+          type: 'number',
+          len: 2,
+          value: '',
+        },
+        yyyy: {
+          placeholder:'yyyy',
+          type: 'number',
+          len: 4,
+          value: '',
+        }
+      },
+      messageTemplate: 'dd/mm/yyyy' // maps from key names above ^^
+      
+    },
+    {
       id: 'postcodeQuestion',
       message: 'What\'s your postcode?',
       trigger: 'postcode',
@@ -15,8 +49,8 @@ export const steps = [
     },
     {
       id: 'addressLookup',
-      user: false,
-      delay:300,
+      user: false, // prevents triggering of input box
+      delay: 300,
       trigger: 'address',
       asyncAddressLookup: true,
       placeholder: 'e.g BH1 3NE',

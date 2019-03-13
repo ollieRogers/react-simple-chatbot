@@ -165,6 +165,39 @@ var ThemedExample = function ThemedExample() {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "steps", function() { return steps; });
 var steps = [{
+  id: 'dobQuestion',
+  message: 'What\'s your Date of birth?',
+  trigger: 'dob'
+}, {
+  id: 'dob',
+  user: true,
+  trigger: 'postcodeQuestion',
+  metadata: {
+    label: 'edit DOB'
+  },
+  fields: {
+    dd: {
+      placeholder: 'dd',
+      type: 'number',
+      len: 2,
+      value: ''
+    },
+    mm: {
+      placeholder: 'mm',
+      type: 'number',
+      len: 2,
+      value: ''
+    },
+    yyyy: {
+      placeholder: 'yyyy',
+      type: 'number',
+      len: 4,
+      value: ''
+    }
+  },
+  messageTemplate: 'dd/mm/yyyy' // maps from key names above ^^
+
+}, {
   id: 'postcodeQuestion',
   message: 'What\'s your postcode?',
   trigger: 'postcode'
@@ -179,6 +212,7 @@ var steps = [{
 }, {
   id: 'addressLookup',
   user: false,
+  // prevents triggering of input box
   delay: 300,
   trigger: 'address',
   asyncAddressLookup: true,
@@ -250,6 +284,8 @@ __webpack_require__.r(__webpack_exports__);
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _extends() { _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -326,6 +362,19 @@ function (_Component) {
     _defineProperty(_assertThisInitialized(_assertThisInitialized(_this)), "onValueChange", function (event) {
       _this.setState({
         inputValue: event.target.value
+      });
+    });
+
+    _defineProperty(_assertThisInitialized(_assertThisInitialized(_this)), "onFieldValueChange", function (event, field) {
+      // update nested fields (HACK for DOB field).
+      // This is a bit of a disgusting hack for updating a 
+      // nested statepart consider a refactor.
+      _this.setState({
+        currentStep: _objectSpread({}, _this.state.currentStep, {
+          fields: _objectSpread({}, _this.state.currentStep.fields, _defineProperty({}, field, _objectSpread({}, _this.state.currentStep.fields[field], {
+            value: event.currentTarget.value
+          })))
+        })
       });
     });
 
@@ -677,16 +726,34 @@ function (_Component) {
     _defineProperty(_assertThisInitialized(_assertThisInitialized(_this)), "submitUserMessage", function () {
       var _this$state4 = _this.state,
           defaultUserSettings = _this$state4.defaultUserSettings,
-          inputValue = _this$state4.inputValue,
           previousSteps = _this$state4.previousSteps,
           renderedSteps = _this$state4.renderedSteps;
-      var currentStep = _this.state.currentStep;
+      var _this$state5 = _this.state,
+          currentStep = _this$state5.currentStep,
+          inputValue = _this$state5.inputValue;
 
       var isInvalid = currentStep.validator && _this.checkInvalidInput();
 
+      var message = inputValue; // TODO - if has fields read fields and add DOB here.
+      // Update value with concatenated DOB 
+      // set field values so we can access them later.
+      // Its a bit of a hack but DOB is the only place where we need multi text input at the moment.
+
+      console.log('submitUserMessage', currentStep.fields);
+
+      if (currentStep.fields) {
+        // replace template string with mapped values
+        message = currentStep.messageTemplate;
+        inputValue = currentStep.fields;
+        Object.keys(currentStep.fields).map(function (key) {
+          var reg = new RegExp(key, "");
+          message = message.replace(reg, currentStep.fields[key].value);
+        });
+      }
+
       if (!isInvalid) {
         var step = {
-          message: inputValue,
+          message: message,
           value: inputValue
         };
         currentStep = Object.assign({}, defaultUserSettings, currentStep, step);
@@ -709,9 +776,9 @@ function (_Component) {
 
     _defineProperty(_assertThisInitialized(_assertThisInitialized(_this)), "checkInvalidInput", function () {
       var enableMobileAutoFocus = _this.props.enableMobileAutoFocus;
-      var _this$state5 = _this.state,
-          currentStep = _this$state5.currentStep,
-          inputValue = _this$state5.inputValue;
+      var _this$state6 = _this.state,
+          currentStep = _this$state6.currentStep,
+          inputValue = _this$state6.inputValue;
       var result = currentStep.validator(inputValue);
       var value = inputValue;
 
@@ -991,18 +1058,18 @@ function (_Component) {
     value: function render() {
       var _this3 = this;
 
-      var _this$state6 = this.state,
-          currentStep = _this$state6.currentStep,
-          disabled = _this$state6.disabled,
-          inputInvalid = _this$state6.inputInvalid,
-          inputValue = _this$state6.inputValue,
-          opened = _this$state6.opened,
-          renderedSteps = _this$state6.renderedSteps,
-          speaking = _this$state6.speaking,
-          recognitionEnable = _this$state6.recognitionEnable,
-          editingRenderedStepIndex = _this$state6.editingRenderedStepIndex,
-          editingStepId = _this$state6.editingStepId,
-          steps = _this$state6.steps;
+      var _this$state7 = this.state,
+          currentStep = _this$state7.currentStep,
+          disabled = _this$state7.disabled,
+          inputInvalid = _this$state7.inputInvalid,
+          inputValue = _this$state7.inputValue,
+          opened = _this$state7.opened,
+          renderedSteps = _this$state7.renderedSteps,
+          speaking = _this$state7.speaking,
+          recognitionEnable = _this$state7.recognitionEnable,
+          editingRenderedStepIndex = _this$state7.editingRenderedStepIndex,
+          editingStepId = _this$state7.editingStepId,
+          steps = _this$state7.steps;
       var _this$props4 = this.props,
           className = _this$props4.className,
           contentStyle = _this$props4.contentStyle,
@@ -1086,7 +1153,30 @@ function (_Component) {
       }, renderedSteps.map(this.renderStep)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components__WEBPACK_IMPORTED_MODULE_6__["Footer"], {
         className: "rsc-footer",
         style: footerStyle
-      }, !currentStep.hideInput && // TODO 
+      }, !currentStep.hideInput && currentStep.fields && Object.keys(currentStep.fields).map(function (key) {
+        console.log('map', currentStep.fields);
+        return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_components__WEBPACK_IMPORTED_MODULE_6__["Input"], _extends({
+          metadata: currentStep.metadata,
+          type: "textarea",
+          style: inputStyle,
+          innerRef: function innerRef(inputRef) {
+            return _this3.input = inputRef;
+          },
+          className: "rsc-input rsc-input-multi",
+          maxLength: currentStep.fields[key].len,
+          placeholder: currentStep.fields[key].placeholder,
+          onKeyPress: _this3.handleKeyPress,
+          onChange: function onChange(event) {
+            return _this3.onFieldValueChange(event, key);
+          } // update fields
+          ,
+          value: currentStep.fields[key].value,
+          floating: floating,
+          invalid: inputInvalid,
+          disabled: disabled,
+          hasButton: !hideSubmitButton
+        }, inputAttributesOverride));
+      }), !currentStep.hideInput && !currentStep.fields && // TODO 
       // + Replace this element based on what kind of input we want to use
       // + Probably best to create a conditional component
       // + Create wrapping element to position prefixes/suffixes
@@ -1345,7 +1435,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var styled_components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! styled-components */ "./node_modules/styled-components/dist/styled-components.browser.esm.js");
 /* harmony import */ var _theme__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../theme */ "./lib/theme.js");
 function _templateObject() {
-  var data = _taggedTemplateLiteral(["\n  background: ", ";\n  border-radius: 10px;\n  box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.15);\n  font-family: ", ";\n  overflow: hidden;\n  position: ", ";\n  bottom: ", ";\n  top: ", ";\n  right: ", ";\n  left: ", ";\n  width: ", ";\n  height: ", ";\n  z-index: 999;\n  transform: ", ";\n  transform-origin: ", ";\n  transition: transform .3s ease;\n\n  @media screen and (max-width: 568px) {\n    border-radius: ", ";\n    bottom: 0 !important;\n    left: initial !important;\n    height: 100%;\n    right: 0 !important;\n    top: initial !important;\n    width: 100%;\n  }\n"]);
+  var data = _taggedTemplateLiteral(["\n  background: ", ";\n  border-radius: 0px;\n  box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.15);\n  font-family: ", ";\n  overflow: hidden;\n  position: ", ";\n  bottom: ", ";\n  top: ", ";\n  right: ", ";\n  left: ", ";\n  width: ", ";\n  height: ", ";\n  z-index: 999;\n  transform: ", ";\n  transform-origin: ", ";\n  transition: transform .3s ease;\n\n  @media screen and (max-width: 568px) {\n    border-radius: ", ";\n    bottom: 0 !important;\n    left: initial !important;\n    height: 100%;\n    right: 0 !important;\n    top: initial !important;\n    width: 100%;\n  }\n"]);
 
   _templateObject = function _templateObject() {
     return data;
@@ -1549,7 +1639,7 @@ var FloatingIcon = styled_components__WEBPACK_IMPORTED_MODULE_0__["default"].img
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var styled_components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! styled-components */ "./node_modules/styled-components/dist/styled-components.browser.esm.js");
 function _templateObject() {
-  var data = _taggedTemplateLiteral(["\n  position: relative;\n"]);
+  var data = _taggedTemplateLiteral(["\n  position: relative;\n  padding: 4px;\n  background: rgba(0,0,0,0.1);\n"]);
 
   _templateObject = function _templateObject() {
     return data;
@@ -1684,7 +1774,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var styled_components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! styled-components */ "./node_modules/styled-components/dist/styled-components.browser.esm.js");
 /* harmony import */ var _common_animations__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../common/animations */ "./lib/common/animations.jsx");
 function _templateObject() {
-  var data = _taggedTemplateLiteral(["\n  animation: ", ";\n  border: 0;\n  border-radius: 0;\n  border-bottom-left-radius: 10px;\n  border-bottom-right-radius: 10px;\n  border-top: ", ";\n  box-shadow: ", ";\n  box-sizing: border-box;\n  color: ", ";\n  font-size: 16px;\n  opacity: ", ";\n  outline: none;\n  padding: ", ";\n  width: 100%;\n  -webkit-appearance: none;\n\n  &:disabled { background: #fff; }\n\n  @media screen and (max-width: 568px) {\n    border-bottom-left-radius: ", ";\n    border-bottom-right-radius: ", ";\n  }\n"]);
+  var data = _taggedTemplateLiteral(["\n  animation: ", ";\n  border: 0;\n  border-radius: 0;\n  border-top: ", ";\n  box-shadow: ", ";\n  box-sizing: border-box;\n  color: ", ";\n  font-size: 16px;\n  opacity: ", ";\n  outline: none;\n  padding: ", ";\n  width: 100%;\n  -webkit-appearance: none;\n\n  &:disabled { background: #fff; }\n"]);
 
   _templateObject = function _templateObject() {
     return data;
@@ -1709,10 +1799,6 @@ var Input = styled_components__WEBPACK_IMPORTED_MODULE_0__["default"].input(_tem
   return props.disabled && !props.invalid ? '.5' : '1';
 }, function (props) {
   return props.hasButton ? '16px 52px 16px 10px' : '16px 10px';
-}, function (props) {
-  return props.floating ? '0' : '10px';
-}, function (props) {
-  return props.floating ? '0' : '10px';
 });
 /* harmony default export */ __webpack_exports__["default"] = (Input);
 
@@ -2496,6 +2582,10 @@ __webpack_require__.r(__webpack_exports__);
   types: ['number'],
   required: false
 }, {
+  key: 'messageTemplate',
+  types: ['string'],
+  required: false
+}, {
   key: 'end',
   types: ['boolean'],
   required: false
@@ -2578,6 +2668,14 @@ __webpack_require__.r(__webpack_exports__);
   types: ['string', 'number', 'function'],
   required: false
 }, {
+  key: 'fields',
+  types: ['object'],
+  required: false
+}, {
+  key: 'messageTemplate',
+  types: ['string'],
+  required: false
+}, {
   key: 'validator',
   types: ['function'],
   required: false
@@ -2596,10 +2694,6 @@ __webpack_require__.r(__webpack_exports__);
 }, {
   key: 'metadata',
   types: ['object'],
-  required: false
-}, {
-  key: 'asyncAddressLookup',
-  types: ['boolean'],
   required: false
 }]);
 
@@ -3031,7 +3125,7 @@ CustomStep.defaultProps = {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var styled_components__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! styled-components */ "./node_modules/styled-components/dist/styled-components.browser.esm.js");
 function _templateObject() {
-  var data = _taggedTemplateLiteral(["\n  background: #fff;\n  border-radius: 5px;\n  box-shadow: rgba(0, 0, 0, 0.15) 0px 1px 2px 0px;\n  display: flex;\n  justify-content: center;\n  margin: 0 6px 10px 6px;\n  padding: 16px;\n"]);
+  var data = _taggedTemplateLiteral(["\n  background: #fff;\n  border-radius: 0;\n  box-shadow: rgba(0, 0, 0, 0.15) 0px 1px 2px 0px;\n  display: flex;\n  justify-content: center;\n  margin: 0 6px 10px 6px;\n  padding: 16px;\n"]);
 
   _templateObject = function _templateObject() {
     return data;

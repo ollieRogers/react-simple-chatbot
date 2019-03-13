@@ -3,7 +3,7 @@ import defaultTheme from '../theme';
 
 const ChatBotContainer = styled.div`
   background: ${({ theme }) => theme.background};
-  border-radius: 10px;
+  border-radius: 0px;
   box-shadow: 0 12px 24px 0 rgba(0, 0, 0, 0.15);
   font-family: ${({ theme }) => theme.fontFamily};
   overflow: hidden;
